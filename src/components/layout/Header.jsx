@@ -1,5 +1,5 @@
 import React from "react";
-import hearderimg from "../assets/headerimg.png"
+import headerImage from "../../assets/headerimg.png"
 import { NavLink } from "react-router-dom";
 
 const Header = () => {
@@ -30,7 +30,7 @@ const Header = () => {
 
 </div>
     <div className="bg-blue-400 w-full h-22 border-3">
-      <img className="w-full h-21" src={hearderimg} alt="" />
+      <img className="w-full h-21" src={headerImage} alt="" />
     </div>
 <nav className=" mt-1 mb-1 flex justify-center font-semibold  items-center text-center gap-2">
      <NavLink

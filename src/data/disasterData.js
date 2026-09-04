@@ -1,9 +1,9 @@
-import Lightning from "../../assets/images/sparks.jpg"
-import Earthquakes from "../../assets/images/Earthquake1.jpg"
-import Floods from "../../assets/images/flood.jpg"
-import Drought from "../../assets/images/draught1.jpg"
-import HeatWave from "../../assets/images/heatwaveimg.jpg"
-import Industrial from "../../assets/images/industrial.jpg"
+import Lightning from "../assets/images/sparks.jpg"
+import Earthquakes from "../assets/images/Earthquake1.jpg"
+import Floods from "../assets/images/flood.jpg"
+import Drought from "../assets/images/draught1.jpg"
+import HeatWave from "../assets/images/heatwaveimg.jpg"
+import Industrial from "../assets/images/industrial.jpg"
 
 const DisasterData = [
   {

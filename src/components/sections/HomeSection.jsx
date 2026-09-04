@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
-import Card from './card/Card'
-import CardData from './dummyapi/CardData'
-import DisasterCarousel from './pages/DisasterCarousel'
-import EmergencySlider from './pages/EmergencySlider'
+import React from 'react'
+import Card from '../cards/Card'
+import CardData from '../../data/cardData'
+import DisasterCarousel from '../sliders/DisasterCarousel'
+import EmergencySlider from '../sliders/EmergencySlider'
 
 const HomeSection = () => {
 
 
- let [cards , handlecards] = useState(CardData)
+ const cards = CardData
 
   return (
     <div className='mt-1 w-full min-h-screen bg-green-500'>
@@ -21,6 +21,7 @@ const HomeSection = () => {
         <Card key={index}
         src ={value.srcimg}
         title ={value.text}
+          link={value.link}
         />
 
         ))}

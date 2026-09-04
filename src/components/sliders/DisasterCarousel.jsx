@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import DisasterCard from "../card/DisasterCard"
-import DisasterData from "../dummyapi/DisasterData"
+import DisasterCard from "../cards/DisasterCard"
+import DisasterData from "../../data/disasterData"
 
 const DisasterCarousel = () => {
   const [current, setCurrent] = useState(3)
