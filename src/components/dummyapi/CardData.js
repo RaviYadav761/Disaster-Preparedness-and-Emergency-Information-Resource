@@ -1,6 +1,6 @@
 import flash from "../../assets/icons/flash.png"
 import Cyclone from "../../assets/icons/cycloneLogo.png"
-import Drought from "../../assets/icons/Drought.png"
+import Drought from "../../assets/icons/drought.png"
 import Earthquakes from "../../assets/icons/earthquake-icon.png"
 import Floods from "../../assets/icons/flood.png"
 import Industrial from "../../assets/icons/industry.png"
