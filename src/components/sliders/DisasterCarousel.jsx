@@ -75,7 +75,7 @@ const DisasterCarousel = () => {
   return (
     <div className="relative w-full max-w-6xl mx-auto px-10 sm:px-12">
 
-   {/* Section Title */}
+      {/* Section Title */}
       <div className="relative text-center mb-10 mt-10 ">
 
         {/* Background Text */}
@@ -143,16 +143,14 @@ const DisasterCarousel = () => {
         {/* TRACK */}
         <div
           onTransitionEnd={handleTransitionEnd}
-          className={`flex ${
-            isTransition
+          className={`flex ${isTransition
               ? "transition-transform duration-700 ease-in-out"
               : ""
-          }`}
+            }`}
           style={{
             width: `${(clonedCards.length * 100) / cardsPerView}%`,
-            transform: `translateX(-${
-              current * (100 / clonedCards.length)
-            }%)`,
+            transform: `translateX(-${current * (100 / clonedCards.length)
+              }%)`,
           }}
         >
 
@@ -216,10 +214,9 @@ const DisasterCarousel = () => {
               rounded-full
               transition-all
               duration-300
-              ${
-                activeDot === index
-                  ? "w-7 bg-teal-600"
-                  : "w-2.5 bg-slate-300"
+              ${activeDot === index
+                ? "w-7 bg-teal-600"
+                : "w-2.5 bg-slate-300"
               }
             `}
           />

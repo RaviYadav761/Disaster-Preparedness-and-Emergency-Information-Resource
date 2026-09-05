@@ -18,37 +18,37 @@ const CardData = [
   {
     srcimg: Cyclone,
     text: "Cyclone",
-    // link: "/cyclone"
+    link: "/cyclone"
   },
   {
     srcimg: Drought,
     text: "Drought",
-    // link: "/drought"
+    link: "/drought"
   },
   {
     srcimg: Earthquakes,
     text: "Earthquakes",
-    // link: "/earthquakes"
+    link: "/earthquakes"
   },
   {
     srcimg: Floods,
     text: "Floods",
-    // link: "/floods"
+    link: "/floods"
   },
   {
     srcimg: Industrial,
     text: "Chemical & Industrial",
-    // link: "/industrial"
+    link: "/industrial"
   },
   {
     srcimg: HeatWave,
     text: "Heat Wave",
-    // link: "/heat-wave"
+    link: "/heat-wave"
   },
   {
     srcimg: Fire,
     text: "Fire",
-    // link: "/fire"
+    link: "/fire"
   }
 ]
 
