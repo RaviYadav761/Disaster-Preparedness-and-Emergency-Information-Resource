@@ -10,11 +10,15 @@ import Floods from './components/pages/CitizenCorner/Floods'
 import Industrial from './components/pages/CitizenCorner/Industrial'
 import HeatWave from './components/pages/CitizenCorner/HeatWave'
 import Fire from './components/pages/CitizenCorner/Fire'
+import Weather from './components/weather/Weather'
+import { useState } from "react";
 
 const App = () => {
+  const [bg, setBg] = useState("bg-green-400");
   return (
+   <div className={`min-h-screen ${bg}`}>
     <BrowserRouter>
-      <Header/>
+      <Header setBg={setBg}/>
       <main>
         <Routes>
 <Route path='/' element={<HomeSection/>}/>
@@ -26,12 +30,13 @@ const App = () => {
 <Route path='/industrial' element={<Industrial/>}/>
 <Route path='/heat-wave' element={<HeatWave/>}/>
 <Route path='/fire' element={<Fire/>}/>
+<Route path='/weather' element={<Weather/>}/>
 
         </Routes>
       </main>
     
     </BrowserRouter>
-   
+   </div>
   )
 }
 
