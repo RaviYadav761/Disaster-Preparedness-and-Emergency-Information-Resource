@@ -31,7 +31,12 @@ const HomeSection = () => {
        </div>
        <hr className='border-t border-gray-300 my-8' />
       <DisasterCarousel/>
-       
+
+   <footer className="bg-teal-600 mt-3 text-white text-center py-4">
+  <p className="text-sm">
+    Disaster Management & Awareness | Stay Safe, Stay Prepared
+  </p>
+</footer>
     </div>
   )
 }
