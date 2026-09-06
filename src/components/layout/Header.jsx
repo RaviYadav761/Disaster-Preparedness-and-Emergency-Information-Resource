@@ -90,7 +90,7 @@ const Header = ({ setBg }) => {
 
         {/* Do's & Don'ts */}
         <NavLink
-          to="/bc"
+          to="/Dndmain"
           className={({ isActive }) =>
             `rounded px-2 py-1 sm:px-3 sm:py-2
              text-[10px] sm:text-sm
@@ -104,25 +104,9 @@ const Header = ({ setBg }) => {
           Do's & Don'ts
         </NavLink>
 
-        {/* Disaster Guides */}
-        <NavLink
-          to="/b"
-          className={({ isActive }) =>
-            `rounded px-2 py-1 sm:px-3 sm:py-2
-             text-[10px] sm:text-sm
-             whitespace-nowrap transition ${
-              isActive
-                ? "bg-blue-600 text-white"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-            }`
-          }
-        >
-          Disaster Guides
-        </NavLink>
-
         {/* Emergency Helplines */}
         <NavLink
-          to="/c"
+          to="/emergencyhelplinesNav"
           className={({ isActive }) =>
             `rounded px-2 py-1 sm:px-3 sm:py-2
              text-[10px] sm:text-sm
@@ -139,7 +123,7 @@ const Header = ({ setBg }) => {
         {/* Background Buttons */}
         <div className="flex gap-1 sm:gap-2">
 
-          <button
+          {/* <button
             onClick={() => setBg("bg-black")}
             className="
               bg-black
@@ -152,7 +136,7 @@ const Header = ({ setBg }) => {
             "
           >
             Black
-          </button>
+          </button> */}
 
           <button
             onClick={() => setBg("bg-white")}
@@ -183,6 +167,21 @@ const Header = ({ setBg }) => {
           >
             Green
           </button>
+
+          {/* <button
+            onClick={() => setBg("bg-blue-400")}
+            className="
+              bg-blue-400
+              text-black
+              rounded
+              px-2 py-1
+              sm:px-3
+              text-[10px] sm:text-sm
+              whitespace-nowrap
+            "
+          >
+            Blue
+          </button> */}
 
         </div>
 

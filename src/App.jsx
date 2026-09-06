@@ -12,6 +12,21 @@ import HeatWave from './components/pages/CitizenCorner/HeatWave'
 import Fire from './components/pages/CitizenCorner/Fire'
 import Weather from './components/weather/Weather'
 import { useState } from "react";
+import DndMain from './components/pages/DosAndDonts/DndMain'
+
+import Heatwavednd from './components/pages/DosAndDonts/Heatwavednd'
+import Flooddnd from './components/pages/DosAndDonts/Flooddnd'
+import Landslidednd from './components/pages/DosAndDonts/Landslidednd'
+import Earthquakednd from './components/pages/DosAndDonts/Earthquakednd'
+import Cyclonednd from './components/pages/DosAndDonts/Cyclonednd'
+import Coldwavednd from './components/pages/DosAndDonts/Clodwavednd'
+import Droughtdnd from './components/pages/DosAndDonts/Droughtdnd'
+import Firednd from './components/pages/DosAndDonts/Firednd'
+import Lightningdnd from './components/pages/DosAndDonts/Lightningdnd'
+import Tsunamidnd from './components/pages/DosAndDonts/Tsunamidnd'
+import Bookletdnd from './components/pages/DosAndDonts/Bookletdnd'
+import EmergencyHelplines from './components/pages/EmergencyHelplinesNav'
+
 
 const App = () => {
   const [bg, setBg] = useState("bg-green-400");
@@ -31,6 +46,22 @@ const App = () => {
 <Route path='/heat-wave' element={<HeatWave/>}/>
 <Route path='/fire' element={<Fire/>}/>
 <Route path='/weather' element={<Weather/>}/>
+<Route path='/Dndmain' element={<DndMain/>}/>
+
+
+<Route path='/heatwavednd' element={<Heatwavednd />} />
+<Route path='/floodsdnd' element={<Flooddnd />} />
+<Route path='/landslidednd' element={<Landslidednd />} />
+<Route path='/earthquakednd' element={<Earthquakednd />} />
+<Route path='/cyclonednd' element={<Cyclonednd />} />
+<Route path='/coldwavednd' element={<Coldwavednd />} />
+<Route path='/droughtdnd' element={<Droughtdnd />} />
+<Route path='/firednd' element={<Firednd />} />
+<Route path='/lightningdnd' element={<Lightningdnd />} />
+<Route path='/tsunamidnd' element={<Tsunamidnd />} />
+<Route path='/bookletdnd' element={<Bookletdnd />} />
+
+<Route path='/emergencyhelplinesNav' element={<EmergencyHelplines/>} />
 
         </Routes>
       </main>
