@@ -13,22 +13,25 @@ const Header = ({ setBg }) => {
           Helpline : 1916
         </p>
 
-        <button
-          className="
-            px-2 py-1
-            sm:px-3 sm:py-1
-            text-[10px] sm:text-sm
-            bg-green-400
-            rounded
-            text-black
-            border border-red-500
-            font-semibold
-            whitespace-nowrap
-            cursor-pointer
-          "
-        >
-          WHATSAPP Join
-        </button>
+    <a
+  href="https://chat.whatsapp.com/BCukOq0fnMX6wzLdMxPnzH"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="
+    px-2 py-1
+    sm:px-3 sm:py-1
+    text-[10px] sm:text-sm
+    bg-green-400
+    rounded
+    text-black
+    border border-red-500
+    font-semibold
+    whitespace-nowrap
+    cursor-pointer
+  "
+>
+  WHATSAPP Join
+</a>
 
       </div>
 
