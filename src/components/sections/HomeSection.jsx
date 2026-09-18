@@ -31,9 +31,16 @@ const HomeSection = () => {
     adScript.async = true
     adSlot.appendChild(adScript)
 
+    // Additional ad network script
+    const networkScript = document.createElement('script')
+    networkScript.src = 'https://pl31396077.profitableratecpmnetwork.com/9a/e6/e2/9ae6e251038f0b75c8d1f24ec66033f6.js'
+    networkScript.async = true
+    document.body.appendChild(networkScript)
+
     return () => {
       configScript.remove()
       adScript.remove()
+      networkScript.remove()
     }
   }, [])
   // END: Homepage ad script
