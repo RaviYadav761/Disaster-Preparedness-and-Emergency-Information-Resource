@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import Card from '../cards/Card'
 import CardData from '../../data/cardData'
 import DisasterCarousel from '../sliders/DisasterCarousel'
@@ -6,13 +6,17 @@ import EmergencySlider from '../sliders/EmergencySlider'
 
 const HomeSection = () => {
   const cards = CardData
+  const adSlotRef = useRef(null)
 
   // START: Homepage ad script
   useEffect(() => {
+    const adSlot = adSlotRef.current
+    if (!adSlot) return
+
     const configScript = document.createElement('script')
     configScript.type = 'text/javascript'
     configScript.textContent = `
-      window.atOptions = {
+      atOptions = {
         'key' : '74ffd3e115f253edd94e5d5028d8c02e',
         'format' : 'iframe',
         'height' : 250,
@@ -20,17 +24,16 @@ const HomeSection = () => {
         'params' : {}
       };
     `
-    document.body.appendChild(configScript)
+    adSlot.appendChild(configScript)
 
     const adScript = document.createElement('script')
     adScript.src = 'https://www.highrevenueformat.com/74ffd3e115f253edd94e5d5028d8c02e/invoke.js'
     adScript.async = true
-    adScript.defer = true
-    document.body.appendChild(adScript)
+    adSlot.appendChild(adScript)
 
     return () => {
-      document.body.removeChild(configScript)
-      document.body.removeChild(adScript)
+      configScript.remove()
+      adScript.remove()
     }
   }, [])
   // END: Homepage ad script
@@ -62,7 +65,7 @@ const HomeSection = () => {
             Sponsored
           </div>
           <div className='flex min-h-[250px] items-center justify-center overflow-hidden rounded-lg bg-white/60'>
-            <div id='ad-slot-home' className='w-full'></div>
+            <div ref={adSlotRef} id='ad-slot-home' className='w-full'></div>
           </div>
         </div>
       </div>
