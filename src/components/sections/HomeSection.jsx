@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Card from '../cards/Card'
 import CardData from '../../data/cardData'
 import DisasterCarousel from '../sliders/DisasterCarousel'
@@ -7,6 +7,7 @@ import EmergencySlider from '../sliders/EmergencySlider'
 const HomeSection = () => {
   const cards = CardData
   const adSlotRef = useRef(null)
+  const [popupAdLoaded, setPopupAdLoaded] = useState(false)
 
   // START: Homepage ad script
   useEffect(() => {
@@ -31,19 +32,24 @@ const HomeSection = () => {
     adScript.async = true
     adSlot.appendChild(adScript)
 
-    // Additional ad network script
-    const networkScript = document.createElement('script')
-    networkScript.src = 'https://pl31396077.profitableratecpmnetwork.com/9a/e6/e2/9ae6e251038f0b75c8d1f24ec66033f6.js'
-    networkScript.async = true
-    document.body.appendChild(networkScript)
-
     return () => {
       configScript.remove()
       adScript.remove()
-      networkScript.remove()
     }
   }, [])
   // END: Homepage ad script
+
+  const handlePopupAdClick = () => {
+    if (popupAdLoaded) return
+
+    // START: Additional popup ad script
+    const networkScript = document.createElement('script')
+    networkScript.src = 'https://pl31396077.profitableratecpmnetwork.com/9a/e6/e2/9ae6e251038f0b75c8d1f24ec66033f6.js'
+    networkScript.async = false
+    document.body.appendChild(networkScript)
+    setPopupAdLoaded(true)
+    // END: Additional popup ad script
+  }
 
   return (
     <div className='mt-1 w-full min-h-screen bg-green-500'>
@@ -77,6 +83,17 @@ const HomeSection = () => {
         </div>
       </div>
       {/* END: Homepage ad container */}
+
+      {/* START: Click-to-open popup ad */}
+      <button
+        type='button'
+        onClick={handlePopupAdClick}
+        aria-label='Open advertisement'
+        className='pointer-events-auto fixed bottom-5 right-5 z-[9999] flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-emerald-700 text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:scale-105 hover:bg-emerald-800'
+      >
+        {popupAdLoaded ? 'Opened' : 'Ad'}
+      </button>
+      {/* END: Click-to-open popup ad */}
 
       <hr className='border-t border-gray-300 my-8' />
       <DisasterCarousel/>
