@@ -10,44 +10,44 @@ const HomeSection = () => {
   const [popupAdLoaded, setPopupAdLoaded] = useState(false)
 
   // START: Homepage ad script
-  useEffect(() => {
-    const adSlot = adSlotRef.current
-    if (!adSlot) return
+  // useEffect(() => {
+  //   const adSlot = adSlotRef.current
+  //   if (!adSlot) return
 
-    const configScript = document.createElement('script')
-    configScript.type = 'text/javascript'
-    configScript.textContent = `
-      atOptions = {
-        'key' : '74ffd3e115f253edd94e5d5028d8c02e',
-        'format' : 'iframe',
-        'height' : 250,
-        'width' : 300,
-        'params' : {}
-      };
-    `
-    adSlot.appendChild(configScript)
+  //   const configScript = document.createElement('script')
+  //   configScript.type = 'text/javascript'
+  //   configScript.textContent = `
+  //     atOptions = {
+  //       'key' : '74ffd3e115f253edd94e5d5028d8c02e',
+  //       'format' : 'iframe',
+  //       'height' : 250,
+  //       'width' : 300,
+  //       'params' : {}
+  //     };
+  //   `
+  //   adSlot.appendChild(configScript)
 
-    const adScript = document.createElement('script')
-    adScript.src = 'https://www.highrevenueformat.com/74ffd3e115f253edd94e5d5028d8c02e/invoke.js'
-    adScript.async = true
-    adSlot.appendChild(adScript)
+  //   const adScript = document.createElement('script')
+  //   adScript.src = 'https://www.highrevenueformat.com/74ffd3e115f253edd94e5d5028d8c02e/invoke.js'
+  //   adScript.async = true
+  //   adSlot.appendChild(adScript)
 
-    return () => {
-      configScript.remove()
-      adScript.remove()
-    }
-  }, [])
+  //   return () => {
+  //     configScript.remove()
+  //     adScript.remove()
+  //   }
+  // }, [])
   // END: Homepage ad script
 
   const handlePopupAdClick = () => {
     if (popupAdLoaded) return
 
     // START: Additional popup ad script
-    const networkScript = document.createElement('script')
-    networkScript.src = 'https://pl31396077.profitableratecpmnetwork.com/9a/e6/e2/9ae6e251038f0b75c8d1f24ec66033f6.js'
-    networkScript.async = false
-    document.body.appendChild(networkScript)
-    setPopupAdLoaded(true)
+    // const networkScript = document.createElement('script')
+    // networkScript.src = 'https://pl31396077.profitableratecpmnetwork.com/9a/e6/e2/9ae6e251038f0b75c8d1f24ec66033f6.js'
+    // networkScript.async = false
+    // document.body.appendChild(networkScript)
+    // setPopupAdLoaded(true)
     // END: Additional popup ad script
   }
 
@@ -72,7 +72,7 @@ const HomeSection = () => {
       </div>
 
       {/* START: Homepage ad container */}
-      <div className='flex justify-center py-6'>
+      {/* <div className='flex justify-center py-6'>
         <div className='w-full max-w-[320px] rounded-xl border border-emerald-800/20 bg-white/10 p-3 shadow-md backdrop-blur-sm'>
           <div className='mb-2 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-900/70'>
             Sponsored
@@ -81,18 +81,18 @@ const HomeSection = () => {
             <div ref={adSlotRef} id='ad-slot-home' className='w-full'></div>
           </div>
         </div>
-      </div>
+      </div> */}
       {/* END: Homepage ad container */}
 
       {/* START: Click-to-open popup ad */}
-      <button
+      {/* <button
         type='button'
         onClick={handlePopupAdClick}
         aria-label='Open advertisement'
         className='pointer-events-auto fixed bottom-5 right-5 z-[9999] flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-emerald-700 text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:scale-105 hover:bg-emerald-800'
       >
         {popupAdLoaded ? 'Opened' : 'Ad'}
-      </button>
+      </button> */}
       {/* END: Click-to-open popup ad */}
 
       <hr className='border-t border-gray-300 my-8' />
