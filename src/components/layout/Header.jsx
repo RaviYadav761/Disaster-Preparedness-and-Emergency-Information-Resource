@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 
 const Header = ({ setBg }) => {
   return (
-    <header className="w-full">
+    <header className="site-background w-full">
 
       {/* Top Bar */}
       <div className="w-full min-h-10 flex items-center justify-between gap-2 px-2 sm:px-6 lg:px-25 py-1">
@@ -36,7 +36,7 @@ const Header = ({ setBg }) => {
       </div>
 
       {/* Header Image */}
-      <div className="w-full h-16 sm:h-22 border-2 sm:border-3 bg-blue-400 overflow-hidden">
+      <div className="w-full h-16 sm:h-22 border-2 sm:border-3 border-transparent bg-transparent overflow-hidden">
         <img
           className="w-full h-full object-cover"
           src={headerImage}

@@ -3,6 +3,7 @@ import Card from '../cards/Card'
 import CardData from '../../data/cardData'
 import DisasterCarousel from '../sliders/DisasterCarousel'
 import EmergencySlider from '../sliders/EmergencySlider'
+import EarthBackground from './EarthBackground'
 
 const HomeSection = () => {
   const cards = CardData
@@ -52,10 +53,11 @@ const HomeSection = () => {
   }
 
   return (
-    <div className='mt-1 w-full min-h-screen bg-green-500'>
+<div className='site-background mt-1 min-h-screen w-full'>
+      <EarthBackground />
       <EmergencySlider/>
 
-      <div className='flex flex-col py-5 items-center justify-center'>
+      <div id='citizen-corner' className='flex flex-col py-5 items-center justify-center'>
         <h1 className='text-3xl font-semibold text-black'>Citizen Corner</h1>
         <p className='font-semibold mb-3 text-sm text-white'>Awareness Topics & Disaster Types</p>
 
@@ -70,6 +72,7 @@ const HomeSection = () => {
           ))}
         </div>
       </div>
+
 
       {/* START: Homepage ad container */}
       {/* <div className='flex justify-center py-6'>

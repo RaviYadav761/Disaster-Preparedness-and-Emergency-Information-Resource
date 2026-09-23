@@ -31,10 +31,10 @@ import EmergencyHelplines from './components/pages/EmergencyHelplinesNav'
 const App = () => {
   const [bg, setBg] = useState("bg-green-400");
   return (
-   <div className={`min-h-screen ${bg}`}>
+  <div className='site-background min-h-screen'>
     <BrowserRouter>
       <Header setBg={setBg}/>
-      <main>
+      <main className='site-background min-h-screen'>
         <Routes>
 <Route path='/' element={<HomeSection/>}/>
 <Route path='/lightning' element={<Lightning/>}/>

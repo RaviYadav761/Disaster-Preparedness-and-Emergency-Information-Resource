@@ -4,8 +4,38 @@ body{
   margin: 0px;
   padding: 0px;
   box-sizing: border-box;
-    background: #ffffff;
+  background: radial-gradient(circle, rgba(238, 174, 202, 1) 0%, rgba(148, 187, 233, 1) 100%);
   font-family: Verdana, Arial, Helvetica, sans-serif;
   font-size: 11px;
   color: #000000;
+}
+
+.homepage-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: transparent;
+  background-image: none;
+}
+
+.site-background {
+  min-height: 100%;
+  background: radial-gradient(circle, rgba(238, 174, 202, 1) 0%, rgba(148, 187, 233, 1) 100%);
+}
+
+.homepage-shell::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  right: -8%;
+  bottom: 0;
+  left: -8%;
+  height: 15rem;
+  border-radius: 50% 50% 0 0;
+  background: linear-gradient(180deg, rgba(146, 184, 106, 0.2), rgba(42, 112, 82, 0.18));
+  pointer-events: none;
+}
+
+.homepage-footer {
+  background: #0d684d;
 }
