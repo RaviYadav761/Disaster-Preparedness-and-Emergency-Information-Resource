@@ -35,8 +35,8 @@ const EarthBackground = () => {
       camera.updateProjectionMatrix()
       const isDesktop = width > 700
       earth.position.x = isDesktop ? (width > 1100 ? 2.65 : 2.25) : 0
-      earth.position.y = isDesktop ? 0 : -1.5
-      earth.scale.setScalar(isDesktop ? 1.12 : 0.72)
+      earth.position.y = isDesktop ? 0 : -0.5
+      earth.scale.setScalar(isDesktop ? 1.12 : 0.8)
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
       renderer.setSize(width, height, false)
     }
@@ -64,7 +64,7 @@ const EarthBackground = () => {
 
   return (
     <section
-      className='relative m-2 h-[560px] w-[calc(100%-1rem)] overflow-hidden rounded-sm border border-white/55 bg-emerald-900/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_10px_26px_rgba(0,60,35,0.2)] backdrop-blur-[1px] sm:m-4 sm:h-[600px] sm:w-[calc(100%-2rem)]'
+      className='relative m-2 h-[680px] w-[calc(100%-1rem)] overflow-hidden rounded-sm border border-white/55 bg-emerald-900/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_10px_26px_rgba(0,60,35,0.2)] backdrop-blur-[1px] sm:m-4 sm:h-[600px] sm:w-[calc(100%-2rem)]'
       aria-label='Rotating Earth background'
     >
       <span className='absolute left-3 top-3 z-20 h-3 w-3 rounded-full border border-white/80 bg-white/80 shadow-[0_0_8px_rgba(255,255,255,0.9)]' />

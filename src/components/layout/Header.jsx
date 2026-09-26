@@ -123,6 +123,22 @@ const Header = ({ setBg }) => {
           Emergency Helplines
         </NavLink>
 
+        {/* Nearby Places */}
+        <NavLink
+          to="/nearbyplaces"
+          className={({ isActive }) =>
+            `rounded px-2 py-1 sm:px-3 sm:py-2
+             text-[10px] sm:text-sm
+             whitespace-nowrap transition ${
+              isActive
+                ? "bg-blue-600 text-white"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            }`
+          }
+        >
+          Nearby Places
+        </NavLink>
+
         {/* Background Buttons */}
      
 
