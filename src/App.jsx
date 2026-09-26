@@ -26,6 +26,7 @@ import Lightningdnd from './components/pages/DosAndDonts/Lightningdnd'
 import Tsunamidnd from './components/pages/DosAndDonts/Tsunamidnd'
 import Bookletdnd from './components/pages/DosAndDonts/Bookletdnd'
 import EmergencyHelplines from './components/pages/EmergencyHelplinesNav'
+import NearbyPlaces from './components/pages/NearbyPlaces'
 
 
 const App = () => {
@@ -61,6 +62,8 @@ const App = () => {
 <Route path='/tsunamidnd' element={<Tsunamidnd />} />
 <Route path='/bookletdnd' element={<Bookletdnd />} />
 
+
+<Route path='/nearbyplaces' element={<NearbyPlaces/>} />
 <Route path='/emergencyhelplinesNav' element={<EmergencyHelplines/>} />
 
         </Routes>

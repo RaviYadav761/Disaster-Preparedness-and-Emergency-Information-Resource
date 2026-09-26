@@ -123,8 +123,88 @@ const Header = ({ setBg }) => {
           Emergency Helplines
         </NavLink>
 
+
+
+
+        <NavLink
+          to="/nearbyplaces"
+          className={({ isActive }) =>
+            `rounded px-2 py-1 sm:px-3 sm:py-2
+             text-[10px] sm:text-sm
+             whitespace-nowrap transition ${
+              isActive
+                ? "bg-blue-600 text-white"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            }`
+          }
+        >
+          Nearby Places
+        </NavLink>
+
         {/* Background Buttons */}
-     
+        {/* <div className="flex gap-1 sm:gap-2"> */}
+
+          {/* <button
+            onClick={() => setBg("bg-black")}
+            className="
+              bg-black
+              text-white
+              rounded
+              px-2 py-1
+              sm:px-3
+              text-[10px] sm:text-sm
+              whitespace-nowrap
+            "
+          >
+            Black
+          </button> */}
+
+          {/* <button
+            onClick={() => setBg("bg-white")}
+            className="
+              bg-white
+              text-black
+              rounded
+              px-2 py-1
+              sm:px-3
+              text-[10px] sm:text-sm
+              whitespace-nowrap
+            "
+          >
+            White
+          </button>
+
+          <button
+            onClick={() => setBg("bg-green-400")}
+            className="
+              bg-green-400
+              text-black
+              rounded
+              px-2 py-1
+              sm:px-3
+              text-[10px] sm:text-sm
+              whitespace-nowrap
+            "
+          >
+            Green
+          </button> */}
+
+          {/* <button
+            onClick={() => setBg("bg-blue-400")}
+            className="
+              bg-blue-400
+              text-black
+              rounded
+              px-2 py-1
+              sm:px-3
+              text-[10px] sm:text-sm
+              whitespace-nowrap
+            "
+          >
+            Blue
+          </button> */}
+
+        {/* </div> */}
 
       </nav>
 
