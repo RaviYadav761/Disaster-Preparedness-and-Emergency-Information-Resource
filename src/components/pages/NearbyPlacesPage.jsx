@@ -27,7 +27,7 @@ const QUICK_SEARCHES = [
 ];
 const CATEGORY_FILTERS = {
   hospital: ['[amenity~"hospital|clinic|doctors"]', '[healthcare~"hospital|clinic"]'],
-  college: ['[amenity~"college|university|school"]', '[education~"college|university|school"]'],
+  college: ['[amenity~"college|university"]', '[education~"college|university"]'],
   atm: ["[amenity=atm]"], hotel: ['[tourism~"hotel|hostel|motel|guest_house|resort"]'],
   pharmacy: ["[amenity=pharmacy]"], restaurant: ['[amenity~"restaurant|cafe|fast_food|food_court"]', "[shop=bakery]"],
   "petrol pump": ["[amenity=fuel]"], bank: ["[amenity=bank]"],
@@ -43,7 +43,7 @@ function buildOverpassQuery(query, latitude, longitude, radiusKm) {
   const category = getCategory(query);
   const filters = CATEGORY_FILTERS[category] || [
     `[name~"${escapeOverpassQuery(query.trim())}",i]`,
-    '[amenity~"hospital|clinic|doctors|college|university|school|atm|pharmacy|restaurant|cafe|fuel|bank",i]',
+    '[amenity~"hospital|clinic|doctors|college|university|atm|pharmacy|restaurant|cafe|fuel|bank",i]',
     '[tourism~"hotel|hostel|motel|guest_house|resort",i]',
   ];
   return `[out:json][timeout:25];(${filters.flatMap((filter) => [`node${around}${filter};`, `way${around}${filter};`, `relation${around}${filter};`]).join("")});out center tags;`;
@@ -121,7 +121,12 @@ async function fetchNearbyPlaces(query, location, radiusKm, signal) {
         const place = normalizePlace(element, location);
         if (place && !unique.has(place.id)) unique.set(place.id, place);
       });
-      return [...unique.values()].sort((a, b) => a.distanceKm - b.distanceKm);
+      const places = [...unique.values()].sort((a, b) => a.distanceKm - b.distanceKm);
+      // An empty mirror response is not a successful search. Let Promise.any try
+      // another Overpass mirror instead of replacing a complete dataset with the
+      // small Nominatim ranking response.
+      if (!places.length) throw new Error("This nearby data mirror returned no places.");
+      return places;
     } finally {
       clearTimeout(timeout);
       signal.removeEventListener("abort", stopOnParentAbort);
@@ -129,8 +134,12 @@ async function fetchNearbyPlaces(query, location, radiusKm, signal) {
   };
 
   try {
-    // Race Overpass against Nominatim so a slow public mirror cannot keep the UI stuck.
-    return await Promise.any([...OVERPASS_ENDPOINTS.map(request), fetchNominatimPlaces(query, location, radiusKm, signal)]);
+    // Prefer the complete Overpass dataset. Use Nominatim only when every mirror fails.
+    try {
+      return await Promise.any(OVERPASS_ENDPOINTS.map(request));
+    } catch {
+      return await fetchNominatimPlaces(query, location, radiusKm, signal);
+    }
   } catch (error) {
     if (signal.aborted) throw new DOMException("Search cancelled", "AbortError");
     throw error;
