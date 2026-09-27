@@ -27,7 +27,7 @@ const QUICK_SEARCHES = [
 ];
 const CATEGORY_FILTERS = {
   hospital: ['[amenity~"hospital|clinic|doctors"]', '[healthcare~"hospital|clinic"]'],
-  college: ['[amenity~"college|university"]', '[education~"college|university"]'],
+  college: ['[amenity~"college|university"]', '[education~"college|university"]', '[name~"college|university|institute",i]'],
   atm: ["[amenity=atm]"], hotel: ['[tourism~"hotel|hostel|motel|guest_house|resort"]'],
   pharmacy: ["[amenity=pharmacy]"], restaurant: ['[amenity~"restaurant|cafe|fast_food|food_court"]', "[shop=bakery]"],
   "petrol pump": ["[amenity=fuel]"], bank: ["[amenity=bank]"],
