@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const DEFAULT_LOCATION = { latitude: 19.3839, longitude: 72.8379, addressName: "Vasai West" };
 const OVERPASS_ENDPOINTS = [
@@ -56,20 +56,71 @@ function normalizePlace(element, location) {
     distanceKm: Number(distanceInKm(location.latitude, location.longitude, latitude, longitude).toFixed(2)), latitude, longitude,
   };
 }
+async function fetchNominatimPlaces(query, location, radiusKm, signal) {
+  const latitudeDelta = radiusKm / 111;
+  const longitudeDelta = radiusKm / (111 * Math.max(Math.cos((location.latitude * Math.PI) / 180), 0.2));
+  const params = new URLSearchParams({
+    q: query.trim(), format: "jsonv2", limit: "50", addressdetails: "1",
+    viewbox: `${location.longitude - longitudeDelta},${location.latitude + latitudeDelta},${location.longitude + longitudeDelta},${location.latitude - latitudeDelta}`,
+    bounded: "1",
+  });
+  const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
+    signal,
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) throw new Error(`Location search returned ${response.status}.`);
+  const results = await response.json();
+  const places = results.map((result, index) => {
+    const latitude = Number(result.lat);
+    const longitude = Number(result.lon);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+    return {
+      id: `nominatim-${result.place_id || index}`,
+      name: result.name || result.display_name?.split(",")[0] || "Unnamed place",
+      category: result.type || getCategory(query) || "Place",
+      address: result.display_name || "Address not available from OpenStreetMap",
+      phone: "", website: "",
+      distanceKm: Number(distanceInKm(location.latitude, location.longitude, latitude, longitude).toFixed(2)),
+      latitude, longitude,
+    };
+  }).filter((place) => place && place.distanceKm <= radiusKm).sort((a, b) => a.distanceKm - b.distanceKm);
+  if (!places.length) throw new Error("No places returned by location search.");
+  return places;
+}
 async function fetchNearbyPlaces(query, location, radiusKm, signal) {
   const params = new URLSearchParams({ data: buildOverpassQuery(query, location.latitude, location.longitude, radiusKm) });
-  let lastError;
-  for (const endpoint of OVERPASS_ENDPOINTS) {
+  const request = async (endpoint) => {
+    const endpointController = new AbortController();
+    const timeout = setTimeout(() => endpointController.abort(), 10000);
+    const stopOnParentAbort = () => endpointController.abort();
+    signal.addEventListener("abort", stopOnParentAbort, { once: true });
     try {
-      const response = await fetch(`${endpoint}?${params.toString()}`, { method: "GET", signal, headers: { Accept: "application/json" } });
+      const response = await fetch(`${endpoint}?${params.toString()}`, {
+        method: "GET",
+        signal: endpointController.signal,
+        headers: { Accept: "application/json" },
+      });
       if (!response.ok) throw new Error(`Nearby search service returned ${response.status}.`);
       const payload = await response.json();
       const unique = new Map();
-      (payload.elements || []).forEach((element) => { const place = normalizePlace(element, location); if (place && !unique.has(place.id)) unique.set(place.id, place); });
-      return [...unique.values()].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 60);
-    } catch (error) { if (error.name === "AbortError") throw error; lastError = error; }
+      (payload.elements || []).forEach((element) => {
+        const place = normalizePlace(element, location);
+        if (place && !unique.has(place.id)) unique.set(place.id, place);
+      });
+      return [...unique.values()].sort((a, b) => a.distanceKm - b.distanceKm);
+    } finally {
+      clearTimeout(timeout);
+      signal.removeEventListener("abort", stopOnParentAbort);
+    }
+  };
+
+  try {
+    // Race Overpass against Nominatim so a slow public mirror cannot keep the UI stuck.
+    return await Promise.any([...OVERPASS_ENDPOINTS.map(request), fetchNominatimPlaces(query, location, radiusKm, signal)]);
+  } catch (error) {
+    if (signal.aborted) throw new DOMException("Search cancelled", "AbortError");
+    throw error;
   }
-  throw lastError || new Error("Nearby search is temporarily unavailable. Please try again.");
 }
 async function reverseGeocode(latitude, longitude, signal) {
   const params = new URLSearchParams({ lat: String(latitude), lon: String(longitude), format: "jsonv2", zoom: "18" });
@@ -79,11 +130,19 @@ async function reverseGeocode(latitude, longitude, signal) {
   return result.display_name || `Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
 }
 function PlaceCard({ place }) {
-  const mapUrl = `https://www.openstreetmap.org/?mlat=${place.latitude}&mlon=${place.longitude}#map=18/${place.latitude}/${place.longitude}`;
-  return <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${place.latitude},${place.longitude}`;
+  const openGoogleMaps = () => window.open(googleMapsUrl, "_blank", "noopener,noreferrer");
+  return <article
+    className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+    onClick={openGoogleMaps}
+    onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openGoogleMaps(); } }}
+    role="link"
+    tabIndex={0}
+    title="Open this place in Google Maps"
+  >
     <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="truncate text-base font-bold text-slate-900">{place.name}</h3><p className="mt-1 text-xs font-medium capitalize text-blue-600">{place.category}</p></div><span className="shrink-0 rounded-lg bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">{place.distanceKm} km</span></div>
     <p className="mt-4 text-sm leading-relaxed text-slate-600">{place.address}</p>
-    <div className="mt-4 flex flex-wrap gap-2 text-xs">{place.phone && <a className="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700" href={`tel:${place.phone}`}>{place.phone}</a>}<a className="rounded-lg bg-blue-600 px-3 py-2 font-semibold text-white hover:bg-blue-700" href={mapUrl} target="_blank" rel="noreferrer">Open map</a>{place.website && <a className="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700" href={place.website} target="_blank" rel="noreferrer">Website</a>}</div>
+    <div className="mt-4 flex flex-wrap gap-2 text-xs">{place.phone && <a onClick={(event) => event.stopPropagation()} className="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700" href={`tel:${place.phone}`}>{place.phone}</a>}<a onClick={(event) => event.stopPropagation()} className="rounded-lg bg-blue-600 px-3 py-2 font-semibold text-white hover:bg-blue-700" href={googleMapsUrl} target="_blank" rel="noreferrer">Open in Google Maps</a>{place.website && <a onClick={(event) => event.stopPropagation()} className="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700" href={place.website} target="_blank" rel="noreferrer">Website</a>}</div>
   </article>;
 }
 
@@ -96,15 +155,23 @@ export default function NearbyPlacesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
   const [error, setError] = useState("");
+  const activeSearchRef = useRef(null);
 
   const search = useCallback(async (nextQuery = query, nextLocation = location, nextRadius = radiusKm) => {
     const cleanQuery = nextQuery.trim();
     if (!cleanQuery) return;
     setQuery(cleanQuery); setInput(cleanQuery); setIsLoading(true); setError("");
+    activeSearchRef.current?.abort();
     const controller = new AbortController();
+    activeSearchRef.current = controller;
     try { setPlaces(await fetchNearbyPlaces(cleanQuery, nextLocation, nextRadius, controller.signal)); }
     catch (searchError) { if (searchError.name !== "AbortError") { setPlaces([]); setError("Nearby places अभी load नहीं हो पाए। कृपया फिर से try करें या radius बढ़ाएँ।"); } }
-    finally { setIsLoading(false); }
+    finally {
+      if (activeSearchRef.current === controller) {
+        activeSearchRef.current = null;
+        setIsLoading(false);
+      }
+    }
   }, [location, query, radiusKm]);
 
   useEffect(() => { search("hospital", DEFAULT_LOCATION, 5); }, []); // eslint-disable-line react-hooks/exhaustive-deps
