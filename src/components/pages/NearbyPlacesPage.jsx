@@ -1,6 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const DEFAULT_LOCATION = { latitude: 19.3839, longitude: 72.8379, addressName: "Vasai West" };
+const DEFAULT_LOCATION = {
+  latitude: 19.3839,
+  longitude: 72.8379,
+  addressName: "R. P. Jr. College of Arts, Science & Commerce, Vasai West (near Gurudwara)",
+};
+const AREA_OPTIONS = [
+  { id: "rp-college", label: "R.P. College (default)", location: DEFAULT_LOCATION },
+  { id: "vasai", label: "Vasai", location: { latitude: 19.3428238, longitude: 72.805441, addressName: "Vasai, Vasai-Virar" } },
+  { id: "vasai-virar", label: "Vasai-Virar", location: { latitude: 19.3919, longitude: 72.8379, addressName: "Vasai-Virar" } },
+  { id: "nalasopara", label: "Nalasopara", location: { latitude: 19.4174424, longitude: 72.8175975, addressName: "Nalasopara, Vasai-Virar" } },
+  { id: "naigaon", label: "Naigaon", location: { latitude: 19.3510925, longitude: 72.8465229, addressName: "Naigaon, Vasai-Virar" } },
+  { id: "dadar", label: "Dadar", location: { latitude: 19.0192269, longitude: 72.8428479, addressName: "Dadar, Mumbai" } },
+  { id: "churchgate", label: "Churchgate", location: { latitude: 18.9354797, longitude: 72.8271741, addressName: "Churchgate, Mumbai" } },
+  { id: "mumbai", label: "Mumbai", location: { latitude: 19.054999, longitude: 72.8692035, addressName: "Mumbai" } },
+];
 const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
@@ -148,6 +162,7 @@ function PlaceCard({ place }) {
 
 export default function NearbyPlacesPage() {
   const [location, setLocation] = useState(DEFAULT_LOCATION);
+  const [selectedArea, setSelectedArea] = useState("rp-college");
   const [query, setQuery] = useState("hospital");
   const [input, setInput] = useState("hospital");
   const [radiusKm, setRadiusKm] = useState(5);
@@ -185,13 +200,20 @@ export default function NearbyPlacesPage() {
     }, () => { setIsDetecting(false); setError("Location permission नहीं मिली। Default location से nearby places दिखाए जा रहे हैं।"); search(query, DEFAULT_LOCATION, radiusKm); }, { enableHighAccuracy: true, timeout: 12000 });
   };
   const radiusOptions = useMemo(() => [2, 5, 10, 20], []);
+  const selectArea = (event) => {
+    const area = AREA_OPTIONS.find((option) => option.id === event.target.value);
+    if (!area) return;
+    setSelectedArea(area.id);
+    setLocation(area.location);
+    search(query, area.location, radiusKm);
+  };
 
   return <div className="min-h-screen bg-slate-100/60 font-sans text-slate-900">
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white shadow-sm"><div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-3 px-4 sm:px-6"><div><h1 className="text-lg font-bold">Nearby Places</h1><p className="text-xs text-slate-500">Find places around you</p></div><span className="hidden max-w-xs truncate rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 sm:block">{location.addressName}</span></div></header>
     <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
       <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"><form className="flex gap-2" onSubmit={(event) => { event.preventDefault(); search(input); }}><input className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900 outline-none focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Search nearby places (e.g. hospital, college)..." /><button className="rounded-xl bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:bg-slate-300" disabled={isLoading || !input.trim()} type="submit">{isLoading ? "Searching..." : "Search"}</button></form><div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">{QUICK_SEARCHES.map(([value, icon, label]) => <button key={value} type="button" onClick={() => search(value)} className={`rounded-full border px-3 py-1.5 text-xs font-medium ${query.toLowerCase() === value.toLowerCase() ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-slate-100 text-slate-700 hover:border-blue-200 hover:bg-blue-50"}`}>{icon} {label}</button>)}</div></section>
-      <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><button type="button" onClick={detectLocation} disabled={isDetecting} className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">{isDetecting ? "Detecting location..." : "Use my location"}</button><label className="flex items-center gap-2 text-sm font-medium text-slate-600">Radius<select value={radiusKm} onChange={(event) => { const value = Number(event.target.value); setRadiusKm(value); search(query, location, value); }} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none focus:ring-2 focus:ring-blue-100">{radiusOptions.map((value) => <option key={value} value={value}>{value} km</option>)}</select></label></section>
-      <div><h2 className="text-xl font-bold">Nearby Results for <span className="rounded-lg bg-blue-50 px-2.5 py-0.5 text-blue-600">“{query}”</span></h2><p className="mt-1 text-xs text-slate-500">Found {places.length} places within {radiusKm} km</p></div>
+      <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><label className="flex min-w-[230px] flex-1 items-center gap-2 text-sm font-medium text-slate-600">Area<select value={selectedArea} onChange={selectArea} className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none focus:ring-2 focus:ring-blue-100">{AREA_OPTIONS.map((area) => <option key={area.id} value={area.id}>{area.label}</option>)}</select></label><button type="button" onClick={detectLocation} disabled={isDetecting} className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">{isDetecting ? "Detecting location..." : "Use my location"}</button><label className="flex items-center gap-2 text-sm font-medium text-slate-600">Radius<select value={radiusKm} onChange={(event) => { const value = Number(event.target.value); setRadiusKm(value); search(query, location, value); }} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none focus:ring-2 focus:ring-blue-100">{radiusOptions.map((value) => <option key={value} value={value}>{value} km</option>)}</select></label></section>
+      <div><h2 className="text-xl font-bold">Nearby Results for <span className="rounded-lg bg-blue-50 px-2.5 py-0.5 text-blue-600">“{query}”</span></h2><p className="mt-1 text-xs text-slate-500">Found {places.length} real places within {radiusKm} km • Live OpenStreetMap data</p></div>
       {error && <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"><strong>Search problem:</strong> {error}</div>}
       {isLoading ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[1, 2, 3, 4].map((item) => <div key={item} className="h-40 animate-pulse rounded-2xl border border-slate-200 bg-white" />)}</div> : places.length ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{places.map((place) => <PlaceCard key={place.id} place={place} />)}</div> : <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-600">No places found. Try a larger radius or another category.</div>}
     </main><footer className="border-t border-slate-200 bg-white py-5 text-center text-xs text-slate-400">Nearby Places • OpenStreetMap-powered browser search</footer>
