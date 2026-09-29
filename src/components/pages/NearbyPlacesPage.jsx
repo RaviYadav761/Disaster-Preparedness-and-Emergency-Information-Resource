@@ -23,7 +23,7 @@ const OVERPASS_ENDPOINTS = [
 const QUICK_SEARCHES = [
   ["hospital", "🏥", "Hospital"], ["college", "🎓", "College"], ["ATM", "🏧", "ATM"],
   ["hotel", "🏨", "Hotel"], ["pharmacy", "💊", "Pharmacy"], ["restaurant", "🍽️", "Restaurant"],
-  ["petrol pump", "⛽", "Petrol Pump"], ["bank", "🏦", "Bank"],
+  ["petrol pump", "⛽", "Petrol Pump"], ["bank", "🏦", "Bank"], ["mountain", "🏔️", "Mountain"],
 ];
 const CATEGORY_FILTERS = {
   hospital: ['[amenity~"hospital|clinic|doctors"]', '[healthcare~"hospital|clinic"]'],
@@ -31,6 +31,7 @@ const CATEGORY_FILTERS = {
   atm: ["[amenity=atm]"], hotel: ['[tourism~"hotel|hostel|motel|guest_house|resort"]'],
   pharmacy: ["[amenity=pharmacy]"], restaurant: ['[amenity~"restaurant|cafe|fast_food|food_court"]', "[shop=bakery]"],
   "petrol pump": ["[amenity=fuel]"], bank: ["[amenity=bank]"],
+  mountain: ["[natural=peak]", "[natural=mountain]", "[natural=volcano]", "[mountain_pass=yes]"],
 };
 
 function getCategory(query) {
