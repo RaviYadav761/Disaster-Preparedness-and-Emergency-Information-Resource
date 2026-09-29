@@ -31,8 +31,11 @@ const CATEGORY_FILTERS = {
   atm: ["[amenity=atm]"], hotel: ['[tourism~"hotel|hostel|motel|guest_house|resort"]'],
   pharmacy: ["[amenity=pharmacy]"], restaurant: ['[amenity~"restaurant|cafe|fast_food|food_court"]', "[shop=bakery]"],
   "petrol pump": ["[amenity=fuel]"], bank: ["[amenity=bank]"],
-  mountain: ["[natural=peak]", "[natural=mountain]", "[natural=volcano]", "[mountain_pass=yes]"],
+  mountain: ['[natural~"^(peak|mountain|hill|volcano)$"]', "[mountain_pass=yes]"],
 };
+const VERIFIED_MOUNTAIN_PEAKS = [
+  { id: "verified-tungareshwar", name: "Tungareshwar", latitude: 19.437689, longitude: 72.924844, elevationM: 666, sourceUrl: "https://peakvisor.com/peak/tungareshwar.html" },
+];
 
 function getCategory(query) {
   const normalized = query.toLowerCase();
@@ -47,7 +50,7 @@ function buildOverpassQuery(query, latitude, longitude, radiusKm) {
     '[amenity~"hospital|clinic|doctors|college|university|atm|pharmacy|restaurant|cafe|fuel|bank",i]',
     '[tourism~"hotel|hostel|motel|guest_house|resort",i]',
   ];
-  return `[out:json][timeout:25];(${filters.flatMap((filter) => [`node${around}${filter};`, `way${around}${filter};`, `relation${around}${filter};`]).join("")});out center tags;`;
+  return `[out:json][timeout:12];(${filters.map((filter) => `nwr${around}${filter};`).join("")});out center tags;`;
 }
 function distanceInKm(fromLatitude, fromLongitude, latitude, longitude) {
   const earthRadius = 6371;
@@ -71,11 +74,28 @@ function normalizePlace(element, location) {
     distanceKm: Number(distanceInKm(location.latitude, location.longitude, latitude, longitude).toFixed(2)), latitude, longitude,
   };
 }
+function addVerifiedMountainPeaks(places, query, location, radiusKm) {
+  if (getCategory(query) !== "mountain") return places;
+  const verifiedPeaks = VERIFIED_MOUNTAIN_PEAKS.map((peak) => ({
+    id: peak.id,
+    name: peak.name,
+    category: "Mountain peak",
+    address: `Vasai, Maharashtra • Elevation: ${peak.elevationM} m • Source: PeakVisor`,
+    phone: "",
+    website: peak.sourceUrl,
+    latitude: peak.latitude,
+    longitude: peak.longitude,
+    distanceKm: Number(distanceInKm(location.latitude, location.longitude, peak.latitude, peak.longitude).toFixed(2)),
+  })).filter((peak) => peak.distanceKm <= radiusKm);
+  const existingNames = new Set(places.map((place) => place.name.toLowerCase()));
+  return [...places, ...verifiedPeaks.filter((peak) => !existingNames.has(peak.name.toLowerCase()))]
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+}
 async function fetchNominatimPlaces(query, location, radiusKm, signal) {
   const latitudeDelta = radiusKm / 111;
   const longitudeDelta = radiusKm / (111 * Math.max(Math.cos((location.latitude * Math.PI) / 180), 0.2));
   const params = new URLSearchParams({
-    q: query.trim(), format: "jsonv2", limit: "50", addressdetails: "1",
+    q: query.trim(), format: "jsonv2", limit: "40", addressdetails: "1",
     viewbox: `${location.longitude - longitudeDelta},${location.latitude + latitudeDelta},${location.longitude + longitudeDelta},${location.latitude - latitudeDelta}`,
     bounded: "1",
   });
@@ -99,14 +119,13 @@ async function fetchNominatimPlaces(query, location, radiusKm, signal) {
       latitude, longitude,
     };
   }).filter((place) => place && place.distanceKm <= radiusKm).sort((a, b) => a.distanceKm - b.distanceKm);
-  if (!places.length) throw new Error("No places returned by location search.");
   return places;
 }
 async function fetchNearbyPlaces(query, location, radiusKm, signal) {
   const params = new URLSearchParams({ data: buildOverpassQuery(query, location.latitude, location.longitude, radiusKm) });
   const request = async (endpoint) => {
     const endpointController = new AbortController();
-    const timeout = setTimeout(() => endpointController.abort(), 10000);
+    const timeout = setTimeout(() => endpointController.abort(), 6000);
     const stopOnParentAbort = () => endpointController.abort();
     signal.addEventListener("abort", stopOnParentAbort, { once: true });
     try {
@@ -123,10 +142,6 @@ async function fetchNearbyPlaces(query, location, radiusKm, signal) {
         if (place && !unique.has(place.id)) unique.set(place.id, place);
       });
       const places = [...unique.values()].sort((a, b) => a.distanceKm - b.distanceKm);
-      // An empty mirror response is not a successful search. Let Promise.any try
-      // another Overpass mirror instead of replacing a complete dataset with the
-      // small Nominatim ranking response.
-      if (!places.length) throw new Error("This nearby data mirror returned no places.");
       return places;
     } finally {
       clearTimeout(timeout);
@@ -134,16 +149,31 @@ async function fetchNearbyPlaces(query, location, radiusKm, signal) {
     }
   };
 
-  try {
-    // Prefer the complete Overpass dataset. Use Nominatim only when every mirror fails.
+  // Query one mirror at a time: launching identical wide-area requests in
+  // parallel can trigger public Overpass rate limits and 504 responses.
+  let lastError;
+  let receivedSuccessfulResponse = false;
+  for (const endpoint of OVERPASS_ENDPOINTS) {
     try {
-      return await Promise.any(OVERPASS_ENDPOINTS.map(request));
-    } catch {
-      return await fetchNominatimPlaces(query, location, radiusKm, signal);
+      const places = await request(endpoint);
+      receivedSuccessfulResponse = true;
+      if (places.length) return addVerifiedMountainPeaks(places, query, location, radiusKm);
     }
-  } catch (error) {
+    catch (error) {
+      if (signal.aborted) throw new DOMException("Search cancelled", "AbortError");
+      lastError = error;
+    }
+  }
+  try {
+    const places = await fetchNominatimPlaces(query, location, radiusKm, signal);
+    return addVerifiedMountainPeaks(places, query, location, radiusKm);
+  }
+  catch (error) {
     if (signal.aborted) throw new DOMException("Search cancelled", "AbortError");
-    throw error;
+    const verifiedPeaks = addVerifiedMountainPeaks([], query, location, radiusKm);
+    if (verifiedPeaks.length) return verifiedPeaks;
+    if (receivedSuccessfulResponse) return [];
+    throw lastError || error;
   }
 }
 async function reverseGeocode(latitude, longitude, signal) {
@@ -175,7 +205,7 @@ export default function NearbyPlacesPage() {
   const [selectedArea, setSelectedArea] = useState("rp-college");
   const [query, setQuery] = useState("hospital");
   const [input, setInput] = useState("hospital");
-  const [radiusKm, setRadiusKm] = useState(5);
+  const [radiusKm, setRadiusKm] = useState(10);
   const [places, setPlaces] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
@@ -185,11 +215,17 @@ export default function NearbyPlacesPage() {
   const search = useCallback(async (nextQuery = query, nextLocation = location, nextRadius = radiusKm) => {
     const cleanQuery = nextQuery.trim();
     if (!cleanQuery) return;
+    const startsMountainSearch = getCategory(cleanQuery) === "mountain" && getCategory(query) !== "mountain";
+    const leavesMountainSearch = getCategory(query) === "mountain" && getCategory(cleanQuery) !== "mountain";
+    const searchRadius = startsMountainSearch ? Math.max(nextRadius, 100) : leavesMountainSearch ? Math.min(nextRadius, 10) : nextRadius;
+    if (searchRadius !== radiusKm) setRadiusKm(searchRadius);
     setQuery(cleanQuery); setInput(cleanQuery); setIsLoading(true); setError("");
+    const verifiedPeaks = addVerifiedMountainPeaks([], cleanQuery, nextLocation, searchRadius);
+    setPlaces(verifiedPeaks);
     activeSearchRef.current?.abort();
     const controller = new AbortController();
     activeSearchRef.current = controller;
-    try { setPlaces(await fetchNearbyPlaces(cleanQuery, nextLocation, nextRadius, controller.signal)); }
+    try { setPlaces(await fetchNearbyPlaces(cleanQuery, nextLocation, searchRadius, controller.signal)); }
     catch (searchError) { if (searchError.name !== "AbortError") { setPlaces([]); setError("Nearby places अभी load नहीं हो पाए। कृपया फिर से try करें या radius बढ़ाएँ।"); } }
     finally {
       if (activeSearchRef.current === controller) {
@@ -199,7 +235,7 @@ export default function NearbyPlacesPage() {
     }
   }, [location, query, radiusKm]);
 
-  useEffect(() => { search("hospital", DEFAULT_LOCATION, 5); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { search("hospital", DEFAULT_LOCATION, 10); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const detectLocation = () => {
     if (!navigator.geolocation) { setError("इस browser में location support उपलब्ध नहीं है। Default location से search किया जा रहा है।"); return; }
     setIsDetecting(true);
@@ -209,7 +245,7 @@ export default function NearbyPlacesPage() {
       setLocation(nextLocation); setIsDetecting(false); search(query, nextLocation, radiusKm);
     }, () => { setIsDetecting(false); setError("Location permission नहीं मिली। Default location से nearby places दिखाए जा रहे हैं।"); search(query, DEFAULT_LOCATION, radiusKm); }, { enableHighAccuracy: true, timeout: 12000 });
   };
-  const radiusOptions = useMemo(() => [2, 5, 10, 20], []);
+  const radiusOptions = useMemo(() => [2, 5, 10, 20, 50, 100], []);
   const selectArea = (event) => {
     const area = AREA_OPTIONS.find((option) => option.id === event.target.value);
     if (!area) return;
@@ -225,7 +261,7 @@ export default function NearbyPlacesPage() {
       <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><label className="flex min-w-[230px] flex-1 items-center gap-2 text-sm font-medium text-slate-600">Area<select value={selectedArea} onChange={selectArea} className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none focus:ring-2 focus:ring-blue-100">{AREA_OPTIONS.map((area) => <option key={area.id} value={area.id}>{area.label}</option>)}</select></label><button type="button" onClick={detectLocation} disabled={isDetecting} className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">{isDetecting ? "Detecting location..." : "Use my location"}</button><label className="flex items-center gap-2 text-sm font-medium text-slate-600">Radius<select value={radiusKm} onChange={(event) => { const value = Number(event.target.value); setRadiusKm(value); search(query, location, value); }} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none focus:ring-2 focus:ring-blue-100">{radiusOptions.map((value) => <option key={value} value={value}>{value} km</option>)}</select></label></section>
       <div><h2 className="text-xl font-bold">Nearby Results for <span className="rounded-lg bg-blue-50 px-2.5 py-0.5 text-blue-600">“{query}”</span></h2><p className="mt-1 text-xs text-slate-500">Found {places.length} real places within {radiusKm} km • Live OpenStreetMap data</p></div>
       {error && <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"><strong>Search problem:</strong> {error}</div>}
-      {isLoading ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[1, 2, 3, 4].map((item) => <div key={item} className="h-40 animate-pulse rounded-2xl border border-slate-200 bg-white" />)}</div> : places.length ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{places.map((place) => <PlaceCard key={place.id} place={place} />)}</div> : <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-600">No places found. Try a larger radius or another category.</div>}
+      {isLoading && !places.length ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[1, 2, 3, 4].map((item) => <div key={item} className="h-40 animate-pulse rounded-2xl border border-slate-200 bg-white" />)}</div> : places.length ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{places.map((place) => <PlaceCard key={place.id} place={place} />)}</div> : <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-600">No places found. Try a larger radius or another category.</div>}
     </main><footer className="border-t border-slate-200 bg-white py-5 text-center text-xs text-slate-400">Nearby Places • OpenStreetMap-powered browser search</footer>
   </div>;
 }
