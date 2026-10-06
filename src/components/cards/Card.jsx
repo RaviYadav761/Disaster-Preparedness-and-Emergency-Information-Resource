@@ -6,7 +6,7 @@ const Card = ({ src, title, link }) => {
   return (
     <Link
       to={link}
-  className="w-[31%] sm:w-[21%]"
+  className="w-[31%] sm:w-[21%] justify-center items-center"
     >
       <div
         className="
