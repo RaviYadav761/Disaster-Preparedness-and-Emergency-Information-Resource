@@ -75,7 +75,8 @@ async function fetchNearbyPlaces(query, location, radiusKm, signal) {
   const params = new URLSearchParams({ data: buildOverpassQuery(query, location.latitude, location.longitude, radiusKm) });
   const request = async (endpoint) => {
     const endpointController = new AbortController();
-    const timeout = setTimeout(() => endpointController.abort(), 6000);
+    let timedOut = false;
+    const timeout = setTimeout(() => { timedOut = true; endpointController.abort(); }, 6000);
     const stopOnParentAbort = () => endpointController.abort();
     signal.addEventListener("abort", stopOnParentAbort, { once: true });
     try {
@@ -86,6 +87,8 @@ async function fetchNearbyPlaces(query, location, radiusKm, signal) {
       });
       if (!response.ok) throw new Error(`Nearby search service returned ${response.status}.`);
       const payload = await response.json();
+      if (payload.remark) throw new Error(`OpenStreetMap query failed: ${payload.remark}`);
+      if (!Array.isArray(payload.elements)) throw new Error("OpenStreetMap returned an invalid place list.");
       const unique = new Map();
       (payload.elements || []).forEach((element) => {
         const place = normalizePlace(element, location);
@@ -93,6 +96,9 @@ async function fetchNearbyPlaces(query, location, radiusKm, signal) {
       });
       const places = [...unique.values()].sort((a, b) => a.distanceKm - b.distanceKm);
       return places;
+    } catch (error) {
+      if (timedOut && !signal.aborted) throw new Error("OpenStreetMap search timed out.");
+      throw error;
     } finally {
       clearTimeout(timeout);
       signal.removeEventListener("abort", stopOnParentAbort);
