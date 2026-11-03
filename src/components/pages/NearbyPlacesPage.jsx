@@ -201,6 +201,7 @@ export default function NearbyPlacesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
   const [error, setError] = useState("");
+  const [locationNotice, setLocationNotice] = useState("");
   const activeSearchRef = useRef(null);
 
   const search = useCallback(async (nextQuery = query, nextLocation = location, nextRadius = radiusKm) => {
@@ -240,11 +241,12 @@ export default function NearbyPlacesPage() {
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
+      setLocationNotice("इस browser में location support उपलब्ध नहीं है। चुनी हुई जगह से results दिखाए जा रहे हैं।");
       search(query, location, radiusKm);
-      setError("इस browser में location support उपलब्ध नहीं है। चुनी हुई जगह से search किया जा रहा है।");
       return;
     }
 
+    setLocationNotice("");
     setIsDetecting(true);
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       const nextLocation = {
@@ -253,6 +255,7 @@ export default function NearbyPlacesPage() {
         addressName: `Current location (${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)})`,
       };
       setLocation(nextLocation);
+      setLocationNotice("");
       setSelectedArea("rp-college");
       setIsDetecting(false);
       search(query, nextLocation, radiusKm);
@@ -261,7 +264,7 @@ export default function NearbyPlacesPage() {
       setSelectedArea("rp-college");
       setIsDetecting(false);
       search(query, DEFAULT_LOCATION, radiusKm);
-      setError("Location permission नहीं मिली। Default location से search किया जा रहा है।");
+      setLocationNotice("Location permission नहीं मिली। R.P. College (default) के आसपास के results दिखाए जा रहे हैं।");
     }, { enableHighAccuracy: true, timeout: 12000 });
   };
 
@@ -271,6 +274,7 @@ export default function NearbyPlacesPage() {
     if (!area) return;
     setSelectedArea(area.id);
     setLocation(area.location);
+    setLocationNotice("");
     search(query, area.location, radiusKm);
   };
 
@@ -338,6 +342,7 @@ export default function NearbyPlacesPage() {
           </p>
         </div>
 
+        {locationNotice && <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-800"><strong>Location notice:</strong> {locationNotice}</div>}
         {error && <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"><strong>Search problem:</strong> {error}</div>}
         {isLoading && !places.length ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[1, 2, 3, 4].map((item) => <div key={item} className="h-40 animate-pulse rounded-2xl border border-slate-200 bg-white" />)}</div>
